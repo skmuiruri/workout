@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#EEF1F3" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0E141A" media="(prefers-color-scheme: dark)">
+<script>try{const t=localStorage.getItem("ppl-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PPL Log">
 <link rel="manifest" href="manifest.webmanifest">
@@ -37,6 +38,11 @@ h1{font-family:var(--display);font-weight:700;font-size:1.7rem;letter-spacing:.0
 .unit{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex:none}
 .unit button{font:600 .8rem var(--body);padding:5px 12px;border:0;background:transparent;color:var(--muted);cursor:pointer}
 .unit button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.ctrls{display:flex;align-items:center;gap:8px;flex:none}
+.theme{flex:none;width:32px;height:32px;padding:0;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.theme svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.theme .moon{display:none}
+.theme.is-dark .sun{display:none}.theme.is-dark .moon{display:block}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
 .day{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 0 5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
 .day b{font-family:var(--display);font-weight:700;font-size:1rem;letter-spacing:.04em;text-transform:uppercase}
@@ -93,9 +99,15 @@ details ul{margin:0 0 14px;padding-left:18px;display:flex;flex-direction:column;
   <header>
     <div class="top">
       <h1>Push · Pull · Legs</h1>
-      <div class="unit" role="group" aria-label="Weight unit">
-        <button id="u-kg" type="button" data-u="kg">kg</button>
-        <button id="u-lb" type="button" data-u="lb">lb</button>
+      <div class="ctrls">
+        <div class="unit" role="group" aria-label="Weight unit">
+          <button id="u-kg" type="button" data-u="kg">kg</button>
+          <button id="u-lb" type="button" data-u="lb">lb</button>
+        </div>
+        <button id="theme" class="theme" type="button" aria-label="Switch to dark theme" title="Switch theme">
+          <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
       </div>
     </div>
     <nav class="days" id="days" role="tablist" aria-label="Training day"></nav>
@@ -240,6 +252,12 @@ function save(k,name,card){
 }
 function renderUnit(){document.querySelectorAll(".unit button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.u===unit));document.querySelectorAll(".log .u").forEach(s=>s.textContent=unit)}
 document.querySelectorAll(".unit button").forEach(b=>b.onclick=()=>{unit=b.dataset.u;ls.set("ppl-unit",unit);renderUnit()});
+const sysDark=matchMedia("(prefers-color-scheme:dark)"),themeBtn=$("#theme");
+function renderTheme(){const dark=document.documentElement.dataset.theme?document.documentElement.dataset.theme==="dark":sysDark.matches;
+  themeBtn.classList.toggle("is-dark",dark);themeBtn.setAttribute("aria-label",`Switch to ${dark?"light":"dark"} theme`);
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.content=dark?"#0E141A":"#EEF1F3")}
+themeBtn.onclick=()=>{const dark=themeBtn.classList.contains("is-dark"),next=dark?"light":"dark";document.documentElement.dataset.theme=next;ls.set("ppl-theme",next);renderTheme()};
+sysDark.addEventListener("change",renderTheme);renderTheme();
 
 renderDays();renderDay();renderUnit();
 
