@@ -50,7 +50,11 @@ h1{font-family:var(--display);font-weight:700;font-size:1.7rem;letter-spacing:.0
 .dayhead span{color:var(--muted);font-size:.9rem}
 .list{display:flex;flex-direction:column;gap:14px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.photo{display:block;width:100%;max-width:100%;aspect-ratio:904/300;object-fit:cover;background:#fff}
+.photos{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#fff}
+@media (max-width:480px){.photos:not(.tall){grid-template-columns:1fr}}
+.panel{position:relative;overflow:hidden;aspect-ratio:var(--ar,452/300);background:#fff}
+.panel img{position:absolute;top:0;left:0;width:200%;height:100%;max-width:none;object-fit:cover;display:block}
+.panel.b img{left:-100%}
 .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
 .title{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .title h3{margin:0;font-size:1.08rem;font-weight:600;line-height:1.25;min-width:0}
@@ -193,18 +197,24 @@ function renderDay(){
     const partner=ss?pairs.find(n=>n!==name):null;
     const c=document.createElement("article");c.className="card";
     c.innerHTML=`
-      <img class="photo" src="img/${img}.jpg" alt="${name}: start and finish positions" loading="lazy" width="904" height="300">
+      <div class="photos">
+        <div class="panel a"><img src="img/${img}.jpg" alt="${name}: start position" loading="lazy"></div>
+        <div class="panel b"><img src="img/${img}.jpg" alt="${name}: finish position" loading="lazy"></div>
+      </div>
       <div class="body">
         <div class="title"><h3>${name}</h3><span class="rx">3 × ${range}</span></div>
         <div class="tags"></div>
         <div class="last"></div>
         <form class="log">
-          <label for="w-${k}">Weight (<span class="u">${unit}</span>)<input id="w-${k}" inputmode="decimal" autocomplete="off" placeholder="${last?last.w:"60"}"></label>
-          <label for="r-${k}">Reps per set<input id="r-${k}" inputmode="text" autocomplete="off" placeholder="${last?last.r:"8/8/7"}"></label>
+          <label for="w-${k}"><span>Weight (<span class="u">${unit}</span>)</span><input id="w-${k}" inputmode="decimal" autocomplete="off" placeholder="${last?last.w:"60"}"></label>
+          <label for="r-${k}"><span>Reps per set</span><input id="r-${k}" inputmode="text" autocomplete="off" placeholder="${last?last.r:"8/8/7"}"></label>
           <button class="save" type="submit">Save</button>
         </form>
         <div class="hist"></div>
       </div>`;
+    const ph=c.querySelector(".photos"),pi=ph.querySelector("img");
+    const setAr=()=>{if(!pi.naturalWidth)return;const hw=pi.naturalWidth/2;ph.style.setProperty("--ar",`${hw}/${pi.naturalHeight}`);ph.classList.toggle("tall",hw<pi.naturalHeight)};
+    pi.complete?setAr():pi.addEventListener("load",setAr,{once:true});
     const tags=c.querySelector(".tags");
     if(partner){const t=document.createElement("span");t.className="tag pair";t.textContent="Superset with "+partner.split(" (")[0].toLowerCase();tags.appendChild(t)}
     if(readyToAdd(last,range)){const t=document.createElement("span");t.className="tag up";t.textContent="Add weight";tags.appendChild(t)}
